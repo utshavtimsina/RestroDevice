@@ -22,7 +22,8 @@ class _Menu extends State<Menu> {
   String _scan, _value = "", a = "qr", scan = "false";
   var res;
   int id;
-  List items, name, jsn;
+  List  name, jsn;
+  List items =new List();
   List bytes = new List();
   List<int> count = new List<int>();
   List<int> select = new List<int>();
@@ -54,9 +55,9 @@ class _Menu extends State<Menu> {
     scan = "true";
     _scan = await FlutterBarcodeScanner.scanBarcode("#004297", "Cancel", true);
     _value = _scan;
-    items = _value.split("/");
-    if (items.contains("KCC")) {
-      a = items[1];
+    item = _value.split("/");
+    if (item.contains("KCC")) {
+      a = item[1];
       print(_value);
       http.Response response = await http.get("http://$ip:8080/id?id=$a");
       res = await json.decode(response.body);
@@ -127,11 +128,12 @@ class _Menu extends State<Menu> {
                                       if (count[index] == 3) {
                                         select[index] = 0;
                                         count[index] = 1;
+                                        items.remove(index);
                                         counter--;
                                       } else {
                                         select[index] = 1;
                                         count[index] = 3;
-                                        item[counter] = jsn[index];
+                                        items.add(index);
                                         counter++;
                                       }
                                     });
@@ -161,7 +163,7 @@ class _Menu extends State<Menu> {
                 onPressed: () {
                   var route = MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        Cart(data: item, v: counter,ip:ip),
+                        Cart(data: items, v: counter,ip:ip, jsn:jsn),
                   );
                   Navigator.of(context).push(route);
                   /*Navigator.push(context, MaterialPageRoute(builder: (context) {

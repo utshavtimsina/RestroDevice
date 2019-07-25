@@ -6,8 +6,9 @@ import 'package:badges/badges.dart';
 class Cart extends StatefulWidget {
   final List data;
   final int v;
+  final List jsn;
   final String ip;
-  Cart({Key key, this.data, this.v,this.ip}) : super(key: key);
+  Cart({Key key, this.data, this.v,this.ip,this.jsn}) : super(key: key);
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
@@ -27,15 +28,17 @@ class _Cart extends State<Cart> {
         body: new ListView.builder(
             itemCount: int.parse("${widget.v}"),
             itemBuilder: (BuildContext context, int index) {
-              img = "${widget.data[index]["image"]}";
-              selected.add(0);
-              print(selected[index].toString()+index.toString());
+              int ind = int.parse("${widget.data[index]}");
+              
+              img = "${widget.jsn[ind]["image"]}";
+             // selected.add(0);
+           //   print(selected[index].toString()+index.toString());
               return new Card(
                 child: ListTile(
                   leading: Image.network("http://192.168.137.1:8080/Image?name=$img"),
-                  title: Text("${widget.data[index]["item_name"]}"),
+                  title: Text("${widget.jsn[ind]["item_name"]}"),
                   trailing: Text(
-                    "RS." + "${widget.data[index]["price"]}",
+                    "RS." + "${widget.jsn[ind]["price"]}",
                     style: TextStyle(
                       fontWeight: FontWeight.normal,
                       fontSize: 15,
