@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_automation/Home.dart';
+import 'dart:typed_data';
+import 'dart:convert';
 class QrRes  extends StatefulWidget {
-  final List data;
+  final Map data;
   final String scan;
+  final Map  resultList;
   final int index;
-  QrRes({Key key, this.scan, this.data, this.index}) : super(key: key);
+  final String ip;
+  QrRes({Key key, this.scan, this.data, this.resultList, this.index,this.ip}) : super(key: key);
   
   @override
   State<StatefulWidget> createState() {
@@ -16,29 +20,56 @@ class QrRes  extends StatefulWidget {
 
 class _QrRes extends State<QrRes> {
 
+  String ip;
   @override
   Widget build(BuildContext context) {
+     ip = "${widget.ip}";
+    
     if("${widget.scan}"=="true"){
-     
+      String img= "${widget.resultList["image"]}";
     return Scaffold(appBar: AppBar(
       centerTitle:true,
       title: Text("INFO"),
     ), 
-      body:  new Column(
-      children: <Widget>[
-        Padding(
-          padding:EdgeInsets.all(8),
-          child:Card(
-            child:Text("qr response"),
-          ),
-        ),
-      ],
-    )      
+      body:  new ListView.builder(
+            itemCount: 1,
+            itemBuilder: (BuildContext context, int i) {
+              return new Column(
+                children: <Widget>[
+                  Card(
+                    child:Column(
+                      children:<Widget>[
+                        Padding(
+                          padding:EdgeInsets.only(bottom:8),
+                        child:Text("Category: "+"${widget.resultList["category"]}"),
+                        ),
+                        Image.network("http://$ip:8080/Image?name=$img"),
+                        Padding(
+                          padding:EdgeInsets.only(top:8),
+                          child:Text("${widget.resultList["item_name"]}",textAlign:TextAlign.center,),
+                          ),
+                        Text("Rs."+"${widget.resultList["price"]}"),
+                      ],
+                    ),
+                  ),
+                ],
+
+              );
+            })
+
     
     );
     }
     else{
-       int indexed=int.parse("${widget.index}");
+     String imgs="${widget.data["image"]}";
+
+      /*for(int i=0;i<("${widget.bytes}".length); i++){
+        ;
+    }*/
+        
+       //int indexed=int.parse("${widget.index}");
+       
+       //b.add("${widget.bytes[indexed]}") as Uint8List;
       return Scaffold(appBar: AppBar(
       centerTitle:true,
       title: Text("INFO"),
@@ -46,7 +77,27 @@ class _QrRes extends State<QrRes> {
       body:  new ListView.builder(
             itemCount: 1,
             itemBuilder: (BuildContext context, int i) {
-              return new Text("${widget.data[indexed]["item_name"]}");
+              return new Column(
+                children: <Widget>[
+                  Card(
+                    child:Column(
+                      children:<Widget>[
+                        Padding(
+                          padding:EdgeInsets.only(bottom:8),
+                        child:Text("Category: "+"${widget.data["category"]}"),
+                        ),
+                        Image.network("http://$ip:8080/Image?name=$imgs"),
+                        Padding(
+                          padding:EdgeInsets.only(top:8),
+                          child:Text("${widget.data["item_name"]}",textAlign:TextAlign.center,),
+                          ),
+                        Text("Rs."+"${widget.data["price"]}"),
+                      ],
+                    ),
+                  ),
+                ],
+
+              );
             })
     );
 

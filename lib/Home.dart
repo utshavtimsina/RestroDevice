@@ -20,39 +20,28 @@ class Menu extends StatefulWidget {
 
 class _Menu extends State<Menu> {
   String _scan, _value = "", a = "qr", scan = "false";
-  List items, name, jsn, res;
+  var res;
+  int id;
+  List items, name, jsn;
   List bytes = new List();
-  List<Image> img = new List();
-  int counter = 0, select = 0, tap = 1, d;
+  List<int> count = new List<int>();
+  List<int> select = new List<int>();
+  List item;
+  int counter = 0, d;
+  String ip = "192.168.137.1";
   //Data request to server
   //getData function
   Future<String> getData() async {
-    if (scan == "false") {
-      http.Response response =
-          await http.get(Uri.encodeFull("http://192.168.137.1:8080/welcome"));
+    http.Response response =
+        await http.get(Uri.encodeFull("http://$ip:8080/welcome"));
 
-      this.setState(() {
-        jsn = json.decode(response.body);
-        print("len:");
-        print(jsn.length);
-        for(int i =0;i<jsn.length;i++){
-           bytes.add(base64.decode(jsn[i]["image"]));
-           img.add(Image.memory(bytes[i]));
-          
-        }
-      });
-      print(jsn);
-    } else {
-      http.Response response = await http
-          .get(Uri.encodeFull("http://192.168.100.6:8080/orders?table_no=2"));
-
-      this.setState(() {
-        res = json.decode(response.body);
-      });
-      scan = "false";
-      print("values:");
-      print(res);
-    }
+    this.setState(() {
+      jsn = json.decode(response.body);
+      item = jsn;
+      
+      
+    });
+    print(jsn);
   }
 
   @override
@@ -61,22 +50,20 @@ class _Menu extends State<Menu> {
   }
 
   //Qr Scan
-  Future _qr() async {
+  Future<Map> _qr() async {
     scan = "true";
     _scan = await FlutterBarcodeScanner.scanBarcode("#004297", "Cancel", true);
-    setState(() {
-      _value = _scan;
-      items = _value.split("/");
-      if (items.contains("KCC")) {
-        getData();
-        a = items[1];
-        print(_value);
-        //index = data[7]["price"];
-      } else {
-        a = "Unauthorized QrCode";
-        print(a);
-      }
-    });
+    _value = _scan;
+    items = _value.split("/");
+    if (items.contains("KCC")) {
+      a = items[1];
+      print(_value);
+      http.Response response = await http.get("http://$ip:8080/id?id=$a");
+      res = await json.decode(response.body);
+      return res;
+    }
+    //index = data[7]["price"];
+    
   }
 
 //App UI starts here...
@@ -89,8 +76,9 @@ class _Menu extends State<Menu> {
           itemCount: jsn == null ? 0 : jsn.length,
           itemBuilder: (BuildContext context, int index) {
             name = jsn[index]["item_name"].split(":");
-              //var img = jsn[index]["image"];           
-            
+            String img = jsn[index]["image"];
+            count.add(1);
+            select.add(0);
             return GestureDetector(
                 //onTap:(){print(index.toString());},
                 child: Column(
@@ -103,15 +91,18 @@ class _Menu extends State<Menu> {
                         d = index;
                         print("card");
                         var route = MaterialPageRoute(
-                          builder: (BuildContext context) =>
-                              QrRes(scan: scan, data: jsn, index: d),
+                          builder: (BuildContext context) => QrRes(
+                              data: jsn[index],
+                              ip:ip,
+                             // index: d,
+                            ),
                         );
                         Navigator.of(context).push(route);
                       },
                       splashColor: Colors.green.withAlpha(100),
                       child: Column(
                         children: <Widget>[
-                          Image.network();
+                          (Image.network("http://$ip:8080/Image?name=$img")),
                           Padding(
                             padding: EdgeInsets.only(top: 4, bottom: 8),
                             child: Column(
@@ -121,39 +112,34 @@ class _Menu extends State<Menu> {
                                 ),
 
                                 //Card's cart icon
-                                Text(name[0]),
+                                Text(
+                                  name[0],
+                                ),
 
                                 InkWell(
                                   child: Badge(
                                     badgeContent:
                                         Icon(Icons.add_shopping_cart, size: 20),
-                                    badgeColor: getColor(),
+                                    badgeColor: getColor(index),
                                   ),
                                   onTap: () {
                                     setState(() {
-                                      
-                                      tap++;
-                                      if (tap == 3) {
-                                        select = 0;
-                                        tap = 1;
+                                      if (count[index] == 3) {
+                                        select[index] = 0;
+                                        count[index] = 1;
                                         counter--;
                                       } else {
-                                        select = 1;
+                                        select[index] = 1;
+                                        count[index] = 3;
+                                        item[counter] = jsn[index];
                                         counter++;
                                       }
                                     });
                                   },
                                 ),
-
-                                /*Icon(Icons.add_shopping_cart,
-                                          size: 20,color:Colors.red),*/
                               ],
                             ),
                           ),
-
-                          /*Text(name[1],
-                              style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.w300)),*/
                         ],
                       ),
                     ),
@@ -175,7 +161,7 @@ class _Menu extends State<Menu> {
                 onPressed: () {
                   var route = MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        Cart(data: jsn, v: counter),
+                        Cart(data: item, v: counter,ip:ip),
                   );
                   Navigator.of(context).push(route);
                   /*Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -206,12 +192,17 @@ class _Menu extends State<Menu> {
               child: FloatingActionButton(
                 heroTag: "btn2",
                 onPressed: () {
-                  _qr();
-                  var route = MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        QrRes(scan: scan, data: jsn, index: d),
-                  );
-                  Navigator.of(context).push(route);
+                  Future<Map> values = _qr();
+                  values.then((resultList) {
+                    var route = MaterialPageRoute(
+                      builder: (BuildContext context) => QrRes(
+                          scan: scan,
+                           resultList:resultList,
+                           ip:ip                                              
+                          ),
+                    );
+                    Navigator.of(context).push(route);
+                  });
                 },
                 child: Icon(
                   Icons.camera_enhance,
@@ -224,8 +215,8 @@ class _Menu extends State<Menu> {
     );
   }
 
-  Color getColor() {
-    if (select == 0) {
+  Color getColor(int index) {
+    if (select[index] == 0) {
       return Colors.grey;
     } else
       return Colors.red;
