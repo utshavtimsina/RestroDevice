@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'Automation',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primarySwatch: Colors.blue,
         textTheme: TextTheme(
       body1: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     ),

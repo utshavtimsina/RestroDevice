@@ -30,6 +30,7 @@ class _QrRes extends State<QrRes> {
     return Scaffold(appBar: AppBar(
       centerTitle:true,
       title: Text("INFO"),
+      backgroundColor: Color.fromRGBO(65, 92, 120, 1.0),
     ), 
       body:  new ListView.builder(
             itemCount: 1,
@@ -73,6 +74,7 @@ class _QrRes extends State<QrRes> {
       return Scaffold(appBar: AppBar(
       centerTitle:true,
       title: Text("INFO"),
+      backgroundColor: Color.fromRGBO(65, 92, 120, 1.0),
     ), 
       body:  new ListView.builder(
             itemCount: 1,

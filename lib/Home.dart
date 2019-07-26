@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Menu extends StatefulWidget {
   @override
@@ -22,8 +23,8 @@ class _Menu extends State<Menu> {
   String _scan, _value = "", a = "qr", scan = "false";
   var res;
   int id;
-  List  name, jsn;
-  List items =new List();
+  List name, jsn;
+  List items = new List();
   List bytes = new List();
   List<int> count = new List<int>();
   List<int> select = new List<int>();
@@ -39,8 +40,6 @@ class _Menu extends State<Menu> {
     this.setState(() {
       jsn = json.decode(response.body);
       item = jsn;
-      
-      
     });
     print(jsn);
   }
@@ -64,14 +63,17 @@ class _Menu extends State<Menu> {
       return res;
     }
     //index = data[7]["price"];
-    
   }
 
 //App UI starts here...
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(centerTitle: true, title: Text("KCC Restaurant")),
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text("KCC Restaurant"),
+        backgroundColor: Color.fromRGBO(65, 92, 120, 1.0),
+      ),
 
       body: ListView.builder(
           itemCount: jsn == null ? 0 : jsn.length,
@@ -90,13 +92,12 @@ class _Menu extends State<Menu> {
                     child: InkWell(
                       onTap: () {
                         d = index;
-                        print("card");
                         var route = MaterialPageRoute(
                           builder: (BuildContext context) => QrRes(
-                              data: jsn[index],
-                              ip:ip,
-                             // index: d,
-                            ),
+                            data: jsn[index],
+                            ip: ip,
+                            // index: d,
+                          ),
                         );
                         Navigator.of(context).push(route);
                       },
@@ -109,13 +110,12 @@ class _Menu extends State<Menu> {
                             child: Column(
                               children: <Widget>[
                                 Text(
-                                  "Rs. " + jsn[index]["price"].toString(),
-                                ),
-
-                                //Card's cart icon
-                                Text(
                                   name[0],
                                 ),
+                                Text(
+                                  "Rs. " + jsn[index]["price"].toString(),
+                                ),
+                                //Card's cart icon
 
                                 InkWell(
                                   child: Badge(
@@ -160,10 +160,11 @@ class _Menu extends State<Menu> {
               alignment: Alignment.bottomRight,
               child: FloatingActionButton(
                 heroTag: "btn1",
+                backgroundColor: Color.fromRGBO(65, 92, 120, 1.0),
                 onPressed: () {
                   var route = MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        Cart(data: items, v: counter,ip:ip, jsn:jsn),
+                        Cart(data: items, v: counter, ip: ip, jsn: jsn),
                   );
                   Navigator.of(context).push(route);
                   /*Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -172,7 +173,7 @@ class _Menu extends State<Menu> {
                 },
                 child: Badge(
                   padding: EdgeInsets.all(4),
-                  badgeColor: Colors.white,
+                  badgeColor: Colors.red,
                   shape: BadgeShape.square,
                   borderRadius: 15,
                   badgeContent: Text(
@@ -192,16 +193,14 @@ class _Menu extends State<Menu> {
             child: Align(
               alignment: Alignment.bottomLeft,
               child: FloatingActionButton(
+                backgroundColor: Color.fromRGBO(65, 92, 120, 1.0),
                 heroTag: "btn2",
                 onPressed: () {
                   Future<Map> values = _qr();
                   values.then((resultList) {
                     var route = MaterialPageRoute(
-                      builder: (BuildContext context) => QrRes(
-                          scan: scan,
-                           resultList:resultList,
-                           ip:ip                                              
-                          ),
+                      builder: (BuildContext context) =>
+                          QrRes(scan: scan, resultList: resultList, ip: ip),
                     );
                     Navigator.of(context).push(route);
                   });

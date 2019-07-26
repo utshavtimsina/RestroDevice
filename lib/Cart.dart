@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:badges/badges.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 class Cart extends StatefulWidget {
   final List data;
   final int v;
   final List jsn;
   final String ip;
-  Cart({Key key, this.data, this.v,this.ip,this.jsn}) : super(key: key);
+  Cart({Key key, this.data, this.v, this.ip, this.jsn}) : super(key: key);
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
@@ -18,24 +19,119 @@ class Cart extends StatefulWidget {
 
 class _Cart extends State<Cart> {
   String img;
-  int qty=0;
-  List<int> selected = new List<int>();
+  List qty = new List();
+  List selected = new List();
+  List total = new List();
+  int totals=0;
+  /*Future<int> getIntFromSharedPref() async{
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+     List quantity;
+     prefs.
+     for(int i=0;i<int.parse("${widget.v}");i++)
+     {
+       quantity.add(qty[i]);
+       print(quantity);
+     }
+  }*/
   Widget build(BuildContext context) {
     // TODO: implement build
-
+    String ip = "${widget.ip}";
     return Scaffold(
-        appBar: AppBar(centerTitle: true, title: Text("Cart")),
+        appBar: AppBar(
+          title: Text(
+            "Cart",
+          ),
+          backgroundColor: Color.fromRGBO(65, 92, 120, 1.0),
+          bottom: PreferredSize(
+            child: Container(
+              padding: EdgeInsets.only(bottom: 40),
+              child: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(right:100),
+                    child:Text(
+                    "RS",
+                  
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                    
+                    ),
+                  ),),
+                  Text(totals.toString(),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            preferredSize: Size.fromHeight(120),
+          ),
+        ),
+        bottomNavigationBar: BottomAppBar(
+          child:Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              ButtonTheme(
+                minWidth:200,
+                child:RaisedButton(
+                 splashColor: Colors.grey,
+                 elevation: 8,
+                 
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0)
+                ),
+                 color: Color.fromRGBO(65, 92, 120, 1.0),
+                      onPressed:(){
+                        /*
+                        for(int i=0;i<int.parse("${widget.v}");i++){
+                          Future<http.Response> post() async{
+                          http.post(url,
+                          headers:{"table_no":$tb_no,
+                                    "id":$id[index]"
+                                    "qty":$qty[index]                        
+                          },
+                          )
+                        }
+
+                        }*/
+                      },
+                 child:Text("Place Order",
+                
+                 style:TextStyle(
+                   fontSize: 24,
+                    color: Colors.white,  
+                 ),
+                 ),
+               )
+              ),
+               
+              
+            ],
+          )
+          
+        ),
         body: new ListView.builder(
             itemCount: int.parse("${widget.v}"),
             itemBuilder: (BuildContext context, int index) {
+              int length =int.parse("${widget.v}");
               int ind = int.parse("${widget.data[index]}");
-              
+              qty.add(0);
               img = "${widget.jsn[ind]["image"]}";
-             // selected.add(0);
-           //   print(selected[index].toString()+index.toString());
+              selected.add(0);
+              total.add(0);
+              //   print(selected[index].toString()+index.toString());
               return new Card(
                 child: ListTile(
-                  leading: Image.network("http://192.168.137.1:8080/Image?name=$img"),
+                  leading: Image.network(
+                      "http://$ip:8080/Image?name=$img",
+                      height: 80,
+                      width: 80,
+                      fit: BoxFit.cover),
                   title: Text("${widget.jsn[ind]["item_name"]}"),
                   trailing: Text(
                     "RS." + "${widget.jsn[ind]["price"]}",
@@ -52,18 +148,17 @@ class _Cart extends State<Cart> {
                           size: 18,
                         ),
                         onPressed: () {
-                          
                           setState(() {
-                          selected[index]=1;
-                          changeQty(index);
-                            
+                            selected[index] = 1;
+                            changeQty(index);
+                            total[index]=int.parse("${widget.jsn[ind]["price"]}")*qty[index];
+                            totals=remTotal(total,length);                           
                           });
-                          
                         },
                       ),
                       Badge(
                         badgeContent: Text(
-                          qty.toString(),
+                          qty[index].toString(),
                           style: TextStyle(
                             fontSize: 15,
                           ),
@@ -77,13 +172,15 @@ class _Cart extends State<Cart> {
                           size: 18,
                         ),
                         onPressed: () {
-                           
                           print(index);
                           setState(() {
-                          selected[index]=2;
-                          changeQty(index);
+                            
+                            selected[index] = 2;
+                            changeQty(index);
+                             total[index]=int.parse("${widget.jsn[ind]["price"]}")*qty[index];
+                             totals=remTotal(total,length);                             
+                           
                           });
-                          
                         },
                       ),
                     ],
@@ -93,13 +190,26 @@ class _Cart extends State<Cart> {
             }));
   }
 
-  int changeQty(int index){
-    if(selected[index]==1){
-      return qty++;
+  int changeQty(int index) {
+    if (selected[index] == 1) {
+      return qty[index]++;
+    } else {
+      if(qty[index]==0)
+      {
+        return qty[index];
+      }
+      else{
+      return qty[index]--;
+      }
     }
-    else{
-      return qty--;
-    }
-
+  }
+  int remTotal(List total, int length)
+  {
+    int tot=0;
+      for(int i =0;i<length;i++)
+      {
+          tot+=total[i];
+      }
+      return tot;
   }
 }
