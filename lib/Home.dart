@@ -20,6 +20,7 @@ class Menu extends StatefulWidget {
 }
 
 class _Menu extends State<Menu> {
+  
   String _scan, _value = "", a = "qr", scan = "false";
   var res;
   int id;
@@ -29,11 +30,15 @@ class _Menu extends State<Menu> {
   List<int> count = new List<int>();
   List<int> select = new List<int>();
   List item;
+  int table_No =1;
   int counter = 0, d;
   String ip = "192.168.137.1";
   //Data request to server
   //getData function
   Future<String> getData() async {
+    
+
+
     http.Response response =
         await http.get(Uri.encodeFull("http://$ip:8080/welcome"));
 
@@ -46,7 +51,7 @@ class _Menu extends State<Menu> {
 
   @override
   void initState() {
-    this.getData();
+        this.getData();
   }
 
   //Qr Scan
@@ -57,7 +62,8 @@ class _Menu extends State<Menu> {
     item = _value.split("/");
     if (item.contains("KCC")) {
       a = item[1];
-      print(_value);
+      table_No=int.parse(item[2]);
+      print(table_No);
       http.Response response = await http.get("http://$ip:8080/id?id=$a");
       res = await json.decode(response.body);
       return res;
@@ -68,20 +74,22 @@ class _Menu extends State<Menu> {
 //App UI starts here...
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: Text("KCC Restaurant"),
         backgroundColor: Color.fromRGBO(65, 92, 120, 1.0),
       ),
-
-      body: ListView.builder(
+     body:   
+      ListView.builder(
           itemCount: jsn == null ? 0 : jsn.length,
           itemBuilder: (BuildContext context, int index) {
             name = jsn[index]["item_name"].split(":");
             String img = jsn[index]["image"];
             count.add(1);
             select.add(0);
+           
             return GestureDetector(
                 //onTap:(){print(index.toString());},
                 child: Column(
@@ -164,7 +172,7 @@ class _Menu extends State<Menu> {
                 onPressed: () {
                   var route = MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        Cart(data: items, v: counter, ip: ip, jsn: jsn),
+                        Cart(data: items, v: counter, ip: ip, jsn: jsn, table_No: table_No),
                   );
                   Navigator.of(context).push(route);
                   /*Navigator.push(context, MaterialPageRoute(builder: (context) {
